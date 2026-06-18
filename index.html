@@ -589,6 +589,66 @@
     <div class="sicon">📚</div>
     <div><h2>Revision Notes</h2><p>Key formulas, facts, vocabulary and grammar — searchable textbook</p></div>
   </div>
+  <!-- ===== Ask About Your Notes — Ruth Ace ===== -->
+<div id="askNotes" class="an-card">
+  <h2 class="an-title">📚 Ask About Your Notes</h2>
+  <p class="an-sub">Type a question — I'll answer using your own study notes.</p>
+  <div class="an-row">
+    <input id="anInput" class="an-input" type="text" placeholder="e.g. What is photosynthesis?" autocomplete="off" />
+    <button id="anBtn" class="an-btn">Ask</button>
+  </div>
+  <div id="anStatus" class="an-status"></div>
+  <div id="anAnswer" class="an-answer"></div>
+  <div id="anSources" class="an-sources"></div>
+</div>
+<style>
+  #askNotes.an-card{max-width:680px;margin:24px auto;padding:24px;border-radius:20px;background:#fff;border:2px solid #eadcff;box-shadow:0 10px 30px rgba(90,60,160,.08);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#2b2440;}
+  #askNotes .an-title{margin:0 0 4px;font-size:22px;}
+  #askNotes .an-sub{margin:0 0 16px;color:#7a6f95;font-size:14px;}
+  #askNotes .an-row{display:flex;gap:10px;}
+  #askNotes .an-input{flex:1;padding:13px 15px;font-size:16px;border:2px solid #d9c8f5;border-radius:12px;outline:none;}
+  #askNotes .an-input:focus{border-color:#8b5cf6;}
+  #askNotes .an-btn{padding:13px 22px;font-size:16px;font-weight:700;color:#fff;background:#8b5cf6;border:none;border-radius:12px;cursor:pointer;}
+  #askNotes .an-btn:hover{background:#7c3aed;}
+  #askNotes .an-btn:disabled{opacity:.6;cursor:default;}
+  #askNotes .an-status{margin-top:14px;color:#8b5cf6;font-size:14px;min-height:18px;}
+  #askNotes .an-answer{margin-top:8px;line-height:1.6;font-size:16px;}
+  #askNotes .an-answer h1,#askNotes .an-answer h2{font-size:18px;margin:14px 0 6px;}
+  #askNotes .an-answer ul{padding-left:20px;}
+  #askNotes .an-answer strong{color:#5b21b6;}
+  #askNotes .an-sources{margin-top:14px;font-size:13px;color:#7a6f95;}
+  #askNotes .an-chip{display:inline-block;background:#f1e9ff;border-radius:8px;padding:3px 8px;margin:2px;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+<script>
+(function () {
+  const WORKER = "https://ruth-notes-proxy.andrewsohkh.workers.dev";
+  const input = document.getElementById("anInput");
+  const btn = document.getElementById("anBtn");
+  const statusEl = document.getElementById("anStatus");
+  const answerEl = document.getElementById("anAnswer");
+  const sourcesEl = document.getElementById("anSources");
+  async function ask() {
+    const q = input.value.trim();
+    if (!q) { input.focus(); return; }
+    btn.disabled = true; statusEl.textContent = "Thinking about your notes…";
+    answerEl.innerHTML = ""; sourcesEl.innerHTML = "";
+    try {
+      const r = await fetch(WORKER, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q }) });
+      const data = await r.json();
+      if (!r.ok || data.error) { statusEl.textContent = data.error || "Hmm, something went wrong. Try again!"; return; }
+      statusEl.textContent = "";
+      answerEl.innerHTML = window.marked ? marked.parse(data.answer || "") : (data.answer || "");
+      const files = [...new Set((data.sources || []).map((s) => s.filename))];
+      if (files.length) sourcesEl.innerHTML = "📄 From your notes: " + files.map((f) => '<span class="an-chip">' + f + "</span>").join(" ");
+    } catch (e) { statusEl.textContent = "Couldn't reach the notes helper. Check your connection and try again."; }
+    finally { btn.disabled = false; }
+  }
+  btn.addEventListener("click", ask);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") ask(); });
+})();
+</script>
+
   <div class="nsw"><span class="nsi">🔍</span>
     <input class="nss" id="notesQ" placeholder="Search... e.g. fractions, photosynthesis, 成语, tenses" oninput="notesRender()">
   </div>
@@ -1039,433 +1099,28 @@ function pickEng(i) {
 
 // ========== REVISION NOTES ==========
 const ND = [
-  // ── MATHS ──────────────────────────────────────────────────────────
-  {s:'math',t:'Fractions — Key Rules',b:`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-      <div style="background:rgba(247,151,30,0.1);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:28px;font-weight:800;color:var(--math2);">½ + ⅓</div>
-        <div style="font-size:11px;opacity:0.7;margin-top:4px;">= 3/6 + 2/6 = <strong>5/6</strong></div>
-        <div style="font-size:10px;opacity:0.5;margin-top:2px;">Same denominator first!</div>
-      </div>
-      <div style="background:rgba(247,151,30,0.1);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:28px;font-weight:800;color:var(--math2);">⅔ ÷ ¾</div>
-        <div style="font-size:11px;opacity:0.7;margin-top:4px;">= ⅔ × 4/3 = <strong>8/9</strong></div>
-        <div style="font-size:10px;opacity:0.5;margin-top:2px;">KFC: Keep Flip Change</div>
-      </div>
-    </div>
-    <div class="tb-fml">½ + ⅓ = 3/6 + 2/6 = 5/6 &nbsp;|&nbsp; ⅔ × ¾ = 6/12 = ½ &nbsp;|&nbsp; ⅔ ÷ ¾ = ⅔ × 4/3 = 8/9</div>
-    <div class="tb-tip">💡 KFC rule for division: <strong>K</strong>eep the first, <strong>F</strong>lip the second, <strong>C</strong>hange to multiply!</div>`},
-
-  {s:'math',t:'Percentage — Formulas',b:`
-    <svg viewBox="0 0 320 120" style="width:100%;max-width:320px;display:block;margin:0 auto 12px;">
-      <rect x="10" y="10" width="90" height="100" rx="10" fill="rgba(247,151,30,0.15)" stroke="rgba(247,151,30,0.4)" stroke-width="1.5"/>
-      <text x="55" y="40" text-anchor="middle" fill="#F59E0B" font-size="11" font-weight="bold">PART</text>
-      <text x="55" y="75" text-anchor="middle" fill="white" font-size="22" font-weight="800">%</text>
-      <text x="55" y="98" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Part÷Whole×100</text>
-      <rect x="115" y="10" width="90" height="100" rx="10" fill="rgba(67,233,123,0.1)" stroke="rgba(67,233,123,0.3)" stroke-width="1.5"/>
-      <text x="160" y="40" text-anchor="middle" fill="#43e97b" font-size="11" font-weight="bold">WHOLE</text>
-      <text x="160" y="75" text-anchor="middle" fill="white" font-size="14" font-weight="700">P÷%×100</text>
-      <text x="160" y="98" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Whole=Part÷%×100</text>
-      <rect x="220" y="10" width="90" height="100" rx="10" fill="rgba(79,172,254,0.1)" stroke="rgba(79,172,254,0.3)" stroke-width="1.5"/>
-      <text x="265" y="40" text-anchor="middle" fill="#4facfe" font-size="11" font-weight="bold">INCREASE</text>
-      <text x="265" y="68" text-anchor="middle" fill="white" font-size="11" font-weight="700">Inc÷Orig</text>
-      <text x="265" y="83" text-anchor="middle" fill="white" font-size="11" font-weight="700">×100%</text>
-      <text x="265" y="98" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">% change</text>
-    </svg>
-    <div class="tb-fml">% = (Part ÷ Whole) × 100% &nbsp;|&nbsp; Part = (% ÷ 100) × Whole</div>
-    <div class="tb-tip">💡 "Of" means multiply. "Is" means equals. Example: 24 of 40 = 60%</div>`},
-
-  {s:'math',t:'Area & Perimeter Formulas',b:`
-    <svg viewBox="0 0 340 160" style="width:100%;max-width:340px;display:block;margin:0 auto 12px;">
-      <rect x="10" y="10" width="70" height="70" rx="4" fill="rgba(247,151,30,0.15)" stroke="#F59E0B" stroke-width="1.5"/>
-      <text x="45" y="50" text-anchor="middle" fill="white" font-size="10" font-weight="700">Square</text>
-      <text x="45" y="65" text-anchor="middle" fill="#F59E0B" font-size="9">A=s² P=4s</text>
-      <rect x="100" y="20" width="90" height="50" rx="4" fill="rgba(79,172,254,0.15)" stroke="#4facfe" stroke-width="1.5"/>
-      <text x="145" y="48" text-anchor="middle" fill="white" font-size="10" font-weight="700">Rectangle</text>
-      <text x="145" y="62" text-anchor="middle" fill="#4facfe" font-size="9">A=l×b P=2(l+b)</text>
-      <polygon points="220,10 270,80 170,80" fill="rgba(67,233,123,0.15)" stroke="#43e97b" stroke-width="1.5"/>
-      <text x="220" y="65" text-anchor="middle" fill="white" font-size="10" font-weight="700">Triangle</text>
-      <text x="220" y="95" text-anchor="middle" fill="#43e97b" font-size="9">A=½×b×h</text>
-      <circle cx="295" cy="45" r="35" fill="rgba(249,83,198,0.15)" stroke="#f953c6" stroke-width="1.5"/>
-      <text x="295" y="48" text-anchor="middle" fill="white" font-size="10" font-weight="700">Circle</text>
-      <text x="295" y="63" text-anchor="middle" fill="#f953c6" font-size="9">A=πr² C=2πr</text>
-      <text x="170" y="130" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">π = 3.14 (or 22/7 when r is multiple of 7)</text>
-    </svg>
-    <div class="tb-tip">💡 For composite figures — split into smaller shapes, calculate each, then add!</div>`},
-
-  {s:'math',t:'Speed, Distance & Time',b:`
-    <svg viewBox="0 0 300 110" style="width:100%;max-width:300px;display:block;margin:0 auto 12px;">
-      <circle cx="150" cy="55" r="50" fill="rgba(247,151,30,0.1)" stroke="#F59E0B" stroke-width="2"/>
-      <line x1="150" y1="5" x2="150" y2="105" stroke="#F59E0B" stroke-width="1.5"/>
-      <line x1="100" y1="55" x2="200" y2="55" stroke="#F59E0B" stroke-width="1.5"/>
-      <text x="150" y="38" text-anchor="middle" fill="white" font-size="13" font-weight="800">D</text>
-      <text x="118" y="80" text-anchor="middle" fill="white" font-size="13" font-weight="800">S</text>
-      <text x="182" y="80" text-anchor="middle" fill="white" font-size="13" font-weight="800">T</text>
-      <text x="150" y="12" text-anchor="middle" fill="#F59E0B" font-size="9">Distance</text>
-      <text x="105" y="100" text-anchor="middle" fill="#F59E0B" font-size="9">Speed</text>
-      <text x="197" y="100" text-anchor="middle" fill="#F59E0B" font-size="9">Time</text>
-      <text x="10" y="30" fill="rgba(255,255,255,0.7)" font-size="9">Cover D → S×T</text>
-      <text x="10" y="44" fill="rgba(255,255,255,0.7)" font-size="9">Cover S → D÷T</text>
-      <text x="10" y="58" fill="rgba(255,255,255,0.7)" font-size="9">Cover T → D÷S</text>
-    </svg>
-    <div class="tb-fml">Avg Speed = Total Distance ÷ Total Time</div>
-    <div class="tb-tip">💡 Cover the letter you want to find — the other two show the formula!</div>`},
-
-  {s:'math',t:'Angles — Key Rules',b:`
-    <svg viewBox="0 0 340 130" style="width:100%;max-width:340px;display:block;margin:0 auto 12px;">
-      <line x1="20" y1="65" x2="80" y2="65" stroke="white" stroke-width="2"/>
-      <path d="M 45,65 A 20,20 0 0,1 80,65" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
-      <text x="50" y="55" fill="#F59E0B" font-size="9" font-weight="700">180°</text>
-      <text x="10" y="90" fill="rgba(255,255,255,0.6)" font-size="8">Straight line</text>
-      <line x1="110" y1="65" x2="170" y2="65" stroke="white" stroke-width="2"/>
-      <line x1="140" y1="35" x2="140" y2="95" stroke="white" stroke-width="2"/>
-      <text x="148" y="52" fill="#43e97b" font-size="9">90°</text>
-      <rect x="136" y="61" width="8" height="8" fill="none" stroke="#43e97b" stroke-width="1.5"/>
-      <text x="120" y="105" fill="rgba(255,255,255,0.6)" font-size="8">Right angle</text>
-      <line x1="210" y1="65" x2="270" y2="65" stroke="white" stroke-width="2"/>
-      <line x1="240" y1="35" x2="240" y2="95" stroke="white" stroke-width="2"/>
-      <text x="248" y="55" fill="#f953c6" font-size="8">a°</text>
-      <text x="248" y="78" fill="#f953c6" font-size="8">a°</text>
-      <text x="215" y="105" fill="rgba(255,255,255,0.6)" font-size="8">Vert. opp. equal</text>
-      <polygon points="295,30 330,100 260,100" fill="none" stroke="#4facfe" stroke-width="1.5"/>
-      <text x="295" y="80" text-anchor="middle" fill="#4facfe" font-size="8">a+b+c</text>
-      <text x="295" y="90" text-anchor="middle" fill="#4facfe" font-size="8">=180°</text>
-      <text x="285" y="112" fill="rgba(255,255,255,0.6)" font-size="8">Triangle</text>
-    </svg>
-    <ul><li>Straight line = <strong>180°</strong></li><li>Point = <strong>360°</strong></li><li>Triangle = <strong>180°</strong></li><li>Quadrilateral = <strong>360°</strong></li></ul>`},
-
-  // ── SCIENCE ────────────────────────────────────────────────────────
-  {s:'sci',t:'Photosynthesis vs Respiration',b:`
-    <svg viewBox="0 0 320 140" style="width:100%;max-width:320px;display:block;margin:0 auto 12px;">
-      <rect x="10" y="10" width="140" height="120" rx="12" fill="rgba(67,233,123,0.1)" stroke="#43e97b" stroke-width="1.5"/>
-      <text x="80" y="35" text-anchor="middle" fill="#43e97b" font-size="11" font-weight="800">PHOTOSYNTHESIS</text>
-      <text x="80" y="55" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="9">CO₂ + Water + Light</text>
-      <text x="80" y="70" text-anchor="middle" fill="#43e97b" font-size="14">↓</text>
-      <text x="80" y="88" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="9">Glucose + O₂</text>
-      <text x="80" y="108" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">Plants only · In light</text>
-      <text x="80" y="122" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">Energy STORED</text>
-      <rect x="170" y="10" width="140" height="120" rx="12" fill="rgba(249,83,198,0.1)" stroke="#f953c6" stroke-width="1.5"/>
-      <text x="240" y="35" text-anchor="middle" fill="#f953c6" font-size="11" font-weight="800">RESPIRATION</text>
-      <text x="240" y="55" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="9">Glucose + O₂</text>
-      <text x="240" y="70" text-anchor="middle" fill="#f953c6" font-size="14">↓</text>
-      <text x="240" y="88" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="9">CO₂ + Water + Energy</text>
-      <text x="240" y="108" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">All living things</text>
-      <text x="240" y="122" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">Energy RELEASED</text>
-    </svg>
-    <div class="tb-tip">💡 Key OEQ words: absorbed, released, transferred, converted, stored.</div>`},
-
-  {s:'sci',t:'Water Cycle',b:`
-    <svg viewBox="0 0 320 180" style="width:100%;max-width:320px;display:block;margin:0 auto 12px;">
-      <defs><linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0B1E3F"/><stop offset="100%" stop-color="#1A3A6B"/></linearGradient></defs>
-      <rect width="320" height="180" fill="url(#skyG)" rx="10"/>
-      <ellipse cx="100" cy="50" rx="55" ry="28" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
-      <text x="100" y="46" text-anchor="middle" fill="white" font-size="9" font-weight="700">☁️ Cloud</text>
-      <text x="100" y="58" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="8">Condensation</text>
-      <text x="210" y="30" text-anchor="middle" fill="#F59E0B" font-size="18">☀️</text>
-      <text x="210" y="50" text-anchor="middle" fill="#F59E0B" font-size="8" font-weight="700">Sun heats</text>
-      <path d="M 30 150 Q 80 110 60 80" fill="none" stroke="#4facfe" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
-      <text x="20" y="100" fill="#4facfe" font-size="8" font-weight="700">Evaporation</text>
-      <line x1="80" y1="78" x2="70" y2="100" stroke="#4facfe" stroke-width="1.5"/>
-      <line x1="100" y1="78" x2="95" y2="105" stroke="#4facfe" stroke-width="1.5"/>
-      <line x1="120" y1="78" x2="118" y2="103" stroke="#4facfe" stroke-width="1.5"/>
-      <text x="145" y="100" fill="#4facfe" font-size="8" font-weight="700">🌧️ Precipitation</text>
-      <path d="M 260 120 Q 240 160 200 170 Q 160 175 120 170 Q 80 165 60 155" fill="none" stroke="#4facfe" stroke-width="2"/>
-      <path d="M 60 155 Q 40 148 30 150" fill="none" stroke="#4facfe" stroke-width="2"/>
-      <text x="160" y="168" text-anchor="middle" fill="#4facfe" font-size="8">Collection — rivers, lakes, ocean</text>
-    </svg>
-    <div class="tb-tip">💡 The 4 stages: Evaporation → Condensation → Precipitation → Collection</div>`},
-
-  {s:'sci',t:'Electricity & Circuits',b:`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-      <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;border:1px solid rgba(255,255,255,0.1);">
-        <div style="font-size:11px;font-weight:800;color:var(--math2);margin-bottom:8px;text-align:center;">SERIES CIRCUIT</div>
-        <svg viewBox="0 0 120 80" style="width:100%;">
-          <rect x="5" y="30" width="20" height="20" rx="3" fill="none" stroke="white" stroke-width="1.5"/>
-          <text x="15" y="44" text-anchor="middle" fill="white" font-size="8">🔋</text>
-          <line x1="25" y1="40" x2="45" y2="40" stroke="white" stroke-width="1.5"/>
-          <circle cx="55" cy="40" r="10" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
-          <text x="55" y="44" text-anchor="middle" fill="#F59E0B" font-size="10">💡</text>
-          <line x1="65" y1="40" x2="85" y2="40" stroke="white" stroke-width="1.5"/>
-          <circle cx="95" cy="40" r="10" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
-          <text x="95" y="44" text-anchor="middle" fill="#F59E0B" font-size="10">💡</text>
-          <line x1="105" y1="40" x2="115" y2="40" stroke="white" stroke-width="1.5"/>
-          <line x1="115" y1="40" x2="115" y2="10" stroke="white" stroke-width="1.5"/>
-          <line x1="5" y1="10" x2="115" y2="10" stroke="white" stroke-width="1.5"/>
-          <line x1="5" y1="10" x2="5" y2="30" stroke="white" stroke-width="1.5"/>
-          <text x="60" y="70" text-anchor="middle" fill="rgba(255,100,100,0.9)" font-size="8">1 fails → ALL fail</text>
-        </svg>
-      </div>
-      <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;border:1px solid rgba(255,255,255,0.1);">
-        <div style="font-size:11px;font-weight:800;color:var(--sci);margin-bottom:8px;text-align:center;">PARALLEL CIRCUIT</div>
-        <svg viewBox="0 0 120 80" style="width:100%;">
-          <rect x="5" y="30" width="20" height="20" rx="3" fill="none" stroke="white" stroke-width="1.5"/>
-          <text x="15" y="44" text-anchor="middle" fill="white" font-size="8">🔋</text>
-          <line x1="25" y1="40" x2="40" y2="40" stroke="white" stroke-width="1.5"/>
-          <line x1="40" y1="25" x2="40" y2="55" stroke="white" stroke-width="1.5"/>
-          <circle cx="65" cy="25" r="10" fill="none" stroke="#43e97b" stroke-width="1.5"/>
-          <text x="65" y="29" text-anchor="middle" fill="#43e97b" font-size="10">💡</text>
-          <circle cx="65" cy="55" r="10" fill="none" stroke="#43e97b" stroke-width="1.5"/>
-          <text x="65" y="59" text-anchor="middle" fill="#43e97b" font-size="10">💡</text>
-          <line x1="40" y1="25" x2="55" y2="25" stroke="white" stroke-width="1.5"/>
-          <line x1="75" y1="25" x2="90" y2="25" stroke="white" stroke-width="1.5"/>
-          <line x1="40" y1="55" x2="55" y2="55" stroke="white" stroke-width="1.5"/>
-          <line x1="75" y1="55" x2="90" y2="55" stroke="white" stroke-width="1.5"/>
-          <line x1="90" y1="25" x2="90" y2="55" stroke="white" stroke-width="1.5"/>
-          <line x1="90" y1="40" x2="115" y2="40" stroke="white" stroke-width="1.5"/>
-          <line x1="115" y1="40" x2="115" y2="10" stroke="white" stroke-width="1.5"/>
-          <line x1="5" y1="10" x2="115" y2="10" stroke="white" stroke-width="1.5"/>
-          <line x1="5" y1="10" x2="5" y2="30" stroke="white" stroke-width="1.5"/>
-          <text x="60" y="75" text-anchor="middle" fill="rgba(100,255,100,0.9)" font-size="8">1 fails → others work</text>
-        </svg>
-      </div>
-    </div>
-    <div class="tb-tip">💡 Conductors: metals. Insulators: plastic, rubber, wood.</div>`},
-
-  {s:'sci',t:'Forces — Types & Effects',b:`
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
-      <div style="background:rgba(247,151,30,0.1);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(247,151,30,0.25);">
-        <div style="font-size:24px;">🌍</div>
-        <div style="font-size:11px;font-weight:800;color:var(--math2);margin:4px 0;">Gravity</div>
-        <div style="font-size:10px;opacity:0.7;">Pulls objects to Earth. Acts on ALL objects.</div>
-      </div>
-      <div style="background:rgba(249,83,198,0.1);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(249,83,198,0.25);">
-        <div style="font-size:24px;">🔥</div>
-        <div style="font-size:11px;font-weight:800;color:var(--chi);margin:4px 0;">Friction</div>
-        <div style="font-size:10px;opacity:0.7;">Opposes motion between surfaces.</div>
-      </div>
-      <div style="background:rgba(67,233,123,0.1);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(67,233,123,0.25);">
-        <div style="font-size:24px;">🧲</div>
-        <div style="font-size:11px;font-weight:800;color:var(--sci);margin:4px 0;">Magnetic</div>
-        <div style="font-size:10px;opacity:0.7;">Attracts iron & steel.</div>
-      </div>
-    </div>
-    <div class="tb-fml">Weight = Mass × 10 N/kg</div>
-    <div class="tb-tip">💡 Forces can start, stop, speed up, slow down or change direction of motion.</div>`},
-
-  {s:'sci',t:'Human Body Systems',b:`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-      <div style="background:rgba(249,83,198,0.08);border-radius:10px;padding:12px;border:1px solid rgba(249,83,198,0.2);">
-        <div style="font-size:11px;font-weight:800;color:var(--chi);margin-bottom:8px;">🍽️ DIGESTIVE SYSTEM</div>
-        <div style="font-size:11px;line-height:1.9;opacity:0.85;">
-          👄 Mouth<br>⬇️<br>🫁 Oesophagus<br>⬇️<br>🫙 Stomach<br>⬇️<br>〰️ Small Intestine<br>⬇️<br>〰️ Large Intestine
-        </div>
-        <div style="font-size:10px;color:var(--chi);margin-top:6px;">Food digested & absorbed into blood</div>
-      </div>
-      <div style="background:rgba(79,172,254,0.08);border-radius:10px;padding:12px;border:1px solid rgba(79,172,254,0.2);">
-        <div style="font-size:11px;font-weight:800;color:var(--eng);margin-bottom:8px;">🫁 RESPIRATORY SYSTEM</div>
-        <div style="font-size:11px;line-height:1.9;opacity:0.85;">
-          👃 Nose/Mouth<br>⬇️<br>🌬️ Trachea<br>⬇️<br>🫁 Bronchi<br>⬇️<br>🫧 Alveoli
-        </div>
-        <div style="font-size:10px;color:var(--eng);margin-top:6px;">O₂ in → CO₂ out</div>
-      </div>
-    </div>
-    <div class="tb-tip">💡 Small intestine = absorption. Large intestine = water absorption + waste.</div>`},
-
-  {s:'sci',t:'Energy — Forms & Conversion',b:`
-    <svg viewBox="0 0 320 150" style="width:100%;max-width:320px;display:block;margin:0 auto 12px;">
-      <circle cx="160" cy="75" r="35" fill="rgba(247,151,30,0.15)" stroke="#F59E0B" stroke-width="2"/>
-      <text x="160" y="70" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="800">ENERGY</text>
-      <text x="160" y="85" text-anchor="middle" fill="#F59E0B" font-size="9">(conserved)</text>
-      <rect x="10" y="10" width="60" height="28" rx="6" fill="rgba(67,233,123,0.15)" stroke="#43e97b" stroke-width="1"/>
-      <text x="40" y="28" text-anchor="middle" fill="#43e97b" font-size="9" font-weight="700">☀️ Light</text>
-      <rect x="250" y="10" width="60" height="28" rx="6" fill="rgba(255,150,50,0.15)" stroke="#ff9632" stroke-width="1"/>
-      <text x="280" y="28" text-anchor="middle" fill="#ff9632" font-size="9" font-weight="700">🔥 Heat</text>
-      <rect x="10" y="112" width="60" height="28" rx="6" fill="rgba(79,172,254,0.15)" stroke="#4facfe" stroke-width="1"/>
-      <text x="40" y="130" text-anchor="middle" fill="#4facfe" font-size="9" font-weight="700">⚡ Electrical</text>
-      <rect x="250" y="112" width="60" height="28" rx="6" fill="rgba(249,83,198,0.15)" stroke="#f953c6" stroke-width="1"/>
-      <text x="280" y="130" text-anchor="middle" fill="#f953c6" font-size="9" font-weight="700">🏃 Kinetic</text>
-      <rect x="130" y="135" width="60" height="28" rx="6" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
-      <text x="160" y="153" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="9" font-weight="700">📦 Potential</text>
-      <line x1="70" y1="24" x2="125" y2="55" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3,2"/>
-      <line x1="250" y1="24" x2="195" y2="55" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3,2"/>
-      <line x1="70" y1="126" x2="125" y2="95" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3,2"/>
-      <line x1="250" y1="126" x2="195" y2="95" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3,2"/>
-      <line x1="160" y1="135" x2="160" y2="110" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3,2"/>
-    </svg>
-    <div class="tb-tip">💡 Energy cannot be created or destroyed — only converted from one form to another!</div>`},
-
-  // ── CHINESE ────────────────────────────────────────────────────────
-  {s:'chi',t:'常用成语 Idioms — Mind Map',b:`
-    <svg viewBox="0 0 320 200" style="width:100%;max-width:320px;display:block;margin:0 auto 12px;">
-      <rect x="110" y="85" width="100" height="30" rx="15" fill="rgba(249,83,198,0.3)" stroke="#f953c6" stroke-width="1.5"/>
-      <text x="160" y="104" text-anchor="middle" fill="white" font-size="10" font-weight="800">成语 Idioms</text>
-      <rect x="5" y="10" width="110" height="36" rx="8" fill="rgba(249,83,198,0.1)" stroke="#f953c6" stroke-width="1"/>
-      <text x="60" y="26" text-anchor="middle" fill="#f953c6" font-size="9" font-weight="700">一石二鸟</text>
-      <text x="60" y="39" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-size="8">2 birds, 1 stone</text>
-      <rect x="205" y="10" width="110" height="36" rx="8" fill="rgba(249,83,198,0.1)" stroke="#f953c6" stroke-width="1"/>
-      <text x="260" y="26" text-anchor="middle" fill="#f953c6" font-size="9" font-weight="700">废寝忘食</text>
-      <text x="260" y="39" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-size="8">Forget sleep &amp; food</text>
-      <rect x="5" y="90" width="100" height="36" rx="8" fill="rgba(249,83,198,0.1)" stroke="#f953c6" stroke-width="1"/>
-      <text x="55" y="106" text-anchor="middle" fill="#f953c6" font-size="9" font-weight="700">助人为乐</text>
-      <text x="55" y="119" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-size="8">Help others = joy</text>
-      <rect x="215" y="90" width="100" height="36" rx="8" fill="rgba(249,83,198,0.1)" stroke="#f953c6" stroke-width="1"/>
-      <text x="265" y="106" text-anchor="middle" fill="#f953c6" font-size="9" font-weight="700">见义勇为</text>
-      <text x="265" y="119" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-size="8">Brave &amp; righteous</text>
-      <rect x="5" y="160" width="110" height="36" rx="8" fill="rgba(249,83,198,0.1)" stroke="#f953c6" stroke-width="1"/>
-      <text x="60" y="176" text-anchor="middle" fill="#f953c6" font-size="9" font-weight="700">专心致志</text>
-      <text x="60" y="189" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-size="8">Fully focused</text>
-      <rect x="200" y="160" width="115" height="36" rx="8" fill="rgba(249,83,198,0.1)" stroke="#f953c6" stroke-width="1"/>
-      <text x="257" y="176" text-anchor="middle" fill="#f953c6" font-size="9" font-weight="700">马到成功</text>
-      <text x="257" y="189" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-size="8">Immediate success</text>
-      <line x1="110" y1="95" x2="115" y2="46" stroke="#f953c6" stroke-width="1" stroke-dasharray="3,2"/>
-      <line x1="210" y1="95" x2="205" y2="46" stroke="#f953c6" stroke-width="1" stroke-dasharray="3,2"/>
-      <line x1="110" y1="100" x2="105" y2="108" stroke="#f953c6" stroke-width="1" stroke-dasharray="3,2"/>
-      <line x1="210" y1="100" x2="215" y2="108" stroke="#f953c6" stroke-width="1" stroke-dasharray="3,2"/>
-      <line x1="140" y1="115" x2="115" y2="178" stroke="#f953c6" stroke-width="1" stroke-dasharray="3,2"/>
-      <line x1="180" y1="115" x2="200" y2="178" stroke="#f953c6" stroke-width="1" stroke-dasharray="3,2"/>
-    </svg>
-    <div class="tb-tip">💡 Learn 2-3 成语 per week. Use them naturally in 作文 and 口试!</div>`},
-
-  {s:'chi',t:'作文词语 Composition Vocab',b:`
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
-      <div style="background:rgba(249,83,198,0.08);border-radius:10px;padding:10px;border:1px solid rgba(249,83,198,0.2);">
-        <div style="font-size:18px;text-align:center;margin-bottom:4px;">😊😢😱</div>
-        <div style="font-size:10px;font-weight:800;color:var(--chi);text-align:center;margin-bottom:6px;">心情 Emotions</div>
-        <div style="font-size:9px;line-height:1.7;opacity:0.8;">喜出望外<br>垂头丧气<br>心惊胆战<br>热泪盈眶</div>
-      </div>
-      <div style="background:rgba(79,172,254,0.08);border-radius:10px;padding:10px;border:1px solid rgba(79,172,254,0.2);">
-        <div style="font-size:18px;text-align:center;margin-bottom:4px;">☀️🌧️🌬️</div>
-        <div style="font-size:10px;font-weight:800;color:var(--eng);text-align:center;margin-bottom:6px;">天气 Weather</div>
-        <div style="font-size:9px;line-height:1.7;opacity:0.8;">烈日当空<br>倾盆大雨<br>风和日丽<br>乌云密布</div>
-      </div>
-      <div style="background:rgba(67,233,123,0.08);border-radius:10px;padding:10px;border:1px solid rgba(67,233,123,0.2);">
-        <div style="font-size:18px;text-align:center;margin-bottom:4px;">🏃‍♂️👀🤲</div>
-        <div style="font-size:10px;font-weight:800;color:var(--sci);text-align:center;margin-bottom:6px;">动作 Actions</div>
-        <div style="font-size:9px;line-height:1.7;opacity:0.8;">迫不及待<br>手忙脚乱<br>目瞪口呆<br>健步如飞</div>
-      </div>
-    </div>
-    <div class="tb-tip">💡 Use vivid phrases to paint pictures with words — score higher in 作文!</div>`},
-
-  {s:'chi',t:'口试技巧 Oral Tips',b:`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-      <div style="background:rgba(249,83,198,0.08);border-radius:10px;padding:12px;border:1px solid rgba(249,83,198,0.2);">
-        <div style="font-size:11px;font-weight:800;color:var(--chi);margin-bottom:8px;">📢 朗读 Reading</div>
-        <ul style="font-size:11px;margin-left:14px;line-height:1.8;opacity:0.85;">
-          <li>Steady pace</li>
-          <li>Clear tones</li>
-          <li>Pause at ，and 。</li>
-          <li>Express feeling</li>
-        </ul>
-      </div>
-      <div style="background:rgba(79,172,254,0.08);border-radius:10px;padding:12px;border:1px solid rgba(79,172,254,0.2);">
-        <div style="font-size:11px;font-weight:800;color:var(--eng);margin-bottom:8px;">🖼️ 看图说话</div>
-        <ul style="font-size:11px;margin-left:14px;line-height:1.8;opacity:0.85;">
-          <li>Who 谁</li>
-          <li>What 什么</li>
-          <li>Where 哪里</li>
-          <li>Why 为什么</li>
-        </ul>
-      </div>
-    </div>
-    <div class="tb-tip">💡 Start with: 从这幅图，我可以看到... Use 成语 naturally!</div>`},
-
-  // ── ENGLISH ────────────────────────────────────────────────────────
-  {s:'eng',t:'Grammar — Tenses',b:`
-    <div style="overflow-x:auto;margin-bottom:12px;">
-    <table>
-      <tr><th>Tense</th><th>Signal word</th><th>Example</th></tr>
-      <tr><td>Simple Present</td><td>always, usually</td><td>She <strong>walks</strong> to school.</td></tr>
-      <tr><td>Simple Past</td><td>yesterday, last</td><td>She <strong>walked</strong> yesterday.</td></tr>
-      <tr><td>Present Continuous</td><td>now, is/are</td><td>She <strong>is walking</strong> now.</td></tr>
-      <tr><td>Past Continuous</td><td>was/were + -ing</td><td>She <strong>was walking</strong>.</td></tr>
-      <tr><td>Present Perfect</td><td>just, already, yet</td><td>She <strong>has walked</strong>.</td></tr>
-      <tr><td>Future</td><td>tomorrow, will</td><td>She <strong>will walk</strong> tomorrow.</td></tr>
-    </table>
-    </div>
-    <div class="tb-tip">💡 Look for signal words first — they tell you which tense to use!</div>`},
-
-  {s:'eng',t:'Synthesis & Transformation',b:`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-      <div style="background:rgba(79,172,254,0.08);border-radius:10px;padding:10px;border:1px solid rgba(79,172,254,0.2);">
-        <div style="font-size:10px;font-weight:800;color:var(--eng);margin-bottom:6px;">CONTRAST</div>
-        <div style="font-size:11px;line-height:1.8;opacity:0.85;"><strong>Although</strong> it rained, they played.<br><strong>Despite</strong> the rain, they played.<br><strong>However</strong>, they still played.</div>
-      </div>
-      <div style="background:rgba(67,233,123,0.08);border-radius:10px;padding:10px;border:1px solid rgba(67,233,123,0.2);">
-        <div style="font-size:10px;font-weight:800;color:var(--sci);margin-bottom:6px;">DEGREE</div>
-        <div style="font-size:11px;line-height:1.8;opacity:0.85;"><strong>So…that:</strong> so cold that…<br><strong>Too…to:</strong> too cold to go<br><strong>Enough to:</strong> warm enough</div>
-      </div>
-      <div style="background:rgba(247,151,30,0.08);border-radius:10px;padding:10px;border:1px solid rgba(247,151,30,0.2);">
-        <div style="font-size:10px;font-weight:800;color:var(--math2);margin-bottom:6px;">ADDITION</div>
-        <div style="font-size:11px;line-height:1.8;opacity:0.85;"><strong>Not only…but also</strong><br><strong>Both…and</strong><br><strong>As well as</strong></div>
-      </div>
-      <div style="background:rgba(249,83,198,0.08);border-radius:10px;padding:10px;border:1px solid rgba(249,83,198,0.2);">
-        <div style="font-size:10px;font-weight:800;color:var(--chi);margin-bottom:6px;">NEGATIVE</div>
-        <div style="font-size:11px;line-height:1.8;opacity:0.85;"><strong>Neither…nor</strong><br><strong>Unless</strong> you study<br><strong>Without</strong> trying</div>
-      </div>
-    </div>
-    <div class="tb-tip">💡 Never change the meaning — only the structure!</div>`},
-
-  {s:'eng',t:'Comprehension OEQ Tips',b:`
-    <svg viewBox="0 0 320 120" style="width:100%;max-width:320px;display:block;margin:0 auto 12px;">
-      <rect x="10" y="10" width="60" height="100" rx="8" fill="rgba(79,172,254,0.15)" stroke="#4facfe" stroke-width="1.5"/>
-      <text x="40" y="35" text-anchor="middle" fill="#4facfe" font-size="10" font-weight="800">1</text>
-      <text x="40" y="52" text-anchor="middle" fill="white" font-size="9" font-weight="700">READ</text>
-      <text x="40" y="66" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8">Find the</text>
-      <text x="40" y="78" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8">keyword</text>
-      <rect x="85" y="10" width="60" height="100" rx="8" fill="rgba(67,233,123,0.15)" stroke="#43e97b" stroke-width="1.5"/>
-      <text x="115" y="35" text-anchor="middle" fill="#43e97b" font-size="10" font-weight="800">2</text>
-      <text x="115" y="52" text-anchor="middle" fill="white" font-size="9" font-weight="700">LOCATE</text>
-      <text x="115" y="66" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8">Find para</text>
-      <text x="115" y="78" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8">in text</text>
-      <rect x="160" y="10" width="60" height="100" rx="8" fill="rgba(247,151,30,0.15)" stroke="#F59E0B" stroke-width="1.5"/>
-      <text x="190" y="35" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="800">3</text>
-      <text x="190" y="52" text-anchor="middle" fill="white" font-size="9" font-weight="700">QUOTE</text>
-      <text x="190" y="66" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8">Evidence</text>
-      <text x="190" y="78" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8">from text</text>
-      <rect x="235" y="10" width="75" height="100" rx="8" fill="rgba(249,83,198,0.15)" stroke="#f953c6" stroke-width="1.5"/>
-      <text x="272" y="35" text-anchor="middle" fill="#f953c6" font-size="10" font-weight="800">4</text>
-      <text x="272" y="52" text-anchor="middle" fill="white" font-size="9" font-weight="700">EXPLAIN</text>
-      <text x="272" y="66" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8">Own words</text>
-      <text x="272" y="78" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8">+ opinion</text>
-    </svg>
-    <div class="tb-tip">💡 Always use text evidence — never just give your own opinion without support!</div>`},
-
-  {s:'eng',t:'Composition Sentence Starters',b:`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-      <div style="background:rgba(79,172,254,0.08);border-radius:10px;padding:10px;border:1px solid rgba(79,172,254,0.2);">
-        <div style="font-size:10px;font-weight:800;color:var(--eng);margin-bottom:6px;">📖 STORY OPENINGS</div>
-        <div style="font-size:10px;line-height:1.8;opacity:0.8;">It was a stormy night when...<br>Never had I imagined that...<br>The moment I saw it...</div>
-      </div>
-      <div style="background:rgba(67,233,123,0.08);border-radius:10px;padding:10px;border:1px solid rgba(67,233,123,0.2);">
-        <div style="font-size:10px;font-weight:800;color:var(--sci);margin-bottom:6px;">⏰ TIME CONNECTORS</div>
-        <div style="font-size:10px;line-height:1.8;opacity:0.8;">Suddenly · Just then<br>Moments later · Before long<br>Without warning</div>
-      </div>
-      <div style="background:rgba(247,151,30,0.08);border-radius:10px;padding:10px;border:1px solid rgba(247,151,30,0.2);">
-        <div style="font-size:10px;font-weight:800;color:var(--math2);margin-bottom:6px;">💓 FEELINGS</div>
-        <div style="font-size:10px;line-height:1.8;opacity:0.8;">My heart sank.<br>A wave of relief...<br>My heart leapt with joy.</div>
-      </div>
-      <div style="background:rgba(249,83,198,0.08);border-radius:10px;padding:10px;border:1px solid rgba(249,83,198,0.2);">
-        <div style="font-size:10px;font-weight:800;color:var(--chi);margin-bottom:6px;">✍️ AVOID</div>
-        <div style="font-size:10px;line-height:1.8;opacity:0.8;">❌ Never start 3 sentences with "I"<br>❌ Don't repeat words<br>✅ Vary sentence length</div>
-      </div>
-    </div>
-    <div class="tb-tip">💡 Plan your composition BEFORE writing — 5 mins planning saves 15 mins of confusion!</div>`},
-
-  {s:'eng',t:'Oral — Stimulus Conversation',b:`
-    <svg viewBox="0 0 320 130" style="width:100%;max-width:320px;display:block;margin:0 auto 12px;">
-      <rect x="10" y="10" width="290" height="110" rx="10" fill="rgba(79,172,254,0.06)" stroke="rgba(79,172,254,0.2)" stroke-width="1"/>
-      <rect x="25" y="25" width="60" height="80" rx="8" fill="rgba(79,172,254,0.15)" stroke="#4facfe" stroke-width="1.5"/>
-      <text x="55" y="48" text-anchor="middle" fill="#4facfe" font-size="18">1️⃣</text>
-      <text x="55" y="65" text-anchor="middle" fill="white" font-size="9" font-weight="800">STATE</text>
-      <text x="55" y="79" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">Your</text>
-      <text x="55" y="91" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">opinion</text>
-      <rect x="100" y="25" width="60" height="80" rx="8" fill="rgba(67,233,123,0.15)" stroke="#43e97b" stroke-width="1.5"/>
-      <text x="130" y="48" text-anchor="middle" fill="#43e97b" font-size="18">2️⃣</text>
-      <text x="130" y="65" text-anchor="middle" fill="white" font-size="9" font-weight="800">REASON</text>
-      <text x="130" y="79" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">1-2 reasons</text>
-      <text x="130" y="91" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">why</text>
-      <rect x="175" y="25" width="60" height="80" rx="8" fill="rgba(247,151,30,0.15)" stroke="#F59E0B" stroke-width="1.5"/>
-      <text x="205" y="48" text-anchor="middle" fill="#F59E0B" font-size="18">3️⃣</text>
-      <text x="205" y="65" text-anchor="middle" fill="white" font-size="9" font-weight="800">EXAMPLE</text>
-      <text x="205" y="79" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">Real life or</text>
-      <text x="205" y="91" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="8">picture</text>
-      <rect x="250" y="25" width="45" height="80" rx="8" fill="rgba(249,83,198,0.15)" stroke="#f953c6" stroke-width="1.5"/>
-      <text x="272" y="48" text-anchor="middle" fill="#f953c6" font-size="14">4️⃣</text>
-      <text x="272" y="65" text-anchor="middle" fill="white" font-size="8" font-weight="800">END</text>
-      <text x="272" y="79" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="7">Link back</text>
-      <text x="272" y="91" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="7">to question</text>
-    </svg>
-    <div class="tb-tip">💡 Phrases: "In my opinion..." / "For example..." / "In conclusion..." — speak naturally!</div>`},
+  {s:'math',t:'Fractions — Key Rules',b:`<h4>Adding & Subtracting</h4><p>Make denominators the same first.</p><div class="tb-fml">½ + ⅓ = 3/6 + 2/6 = 5/6</div><h4>Multiplying</h4><div class="tb-fml">⅔ × ¾ = 6/12 = ½</div><h4>Dividing</h4><p>Keep first, <strong>flip</strong> second, multiply.</p><div class="tb-fml">⅔ ÷ ¾ = ⅔ × 4/3 = 8/9</div><div class="tb-tip">💡 Always simplify your final answer!</div>`},
+  {s:'math',t:'Percentage — Formulas',b:`<div class="tb-fml">Percentage = (Part ÷ Whole) × 100%</div><div class="tb-fml">Part = (Percentage ÷ 100) × Whole</div><div class="tb-fml">% Increase = (Increase ÷ Original) × 100%</div><p><strong>Example:</strong> 24 out of 40 = 60%</p><div class="tb-tip">💡 "Of" means multiply. "Is" means equals.</div>`},
+  {s:'math',t:'Ratio — Key Concepts',b:`<div class="tb-fml">Total parts = a + b (for ratio a:b)</div><div class="tb-fml">Value of 1 part = Total value ÷ Total parts</div><p><strong>Example:</strong> Boys:Girls = 3:2, total 40 → Boys = 24, Girls = 16</p><div class="tb-tip">💡 Simplify ratio by dividing both sides by their HCF.</div>`},
+  {s:'math',t:'Area & Perimeter Formulas',b:`<table><tr><th>Shape</th><th>Area</th><th>Perimeter</th></tr><tr><td>Square</td><td>side²</td><td>4 × side</td></tr><tr><td>Rectangle</td><td>l × b</td><td>2(l+b)</td></tr><tr><td>Triangle</td><td>½ × b × h</td><td>sum of sides</td></tr><tr><td>Circle</td><td>π × r²</td><td>2πr</td></tr></table><div class="tb-fml">π = 3.14 (use 22/7 when r is multiple of 7)</div><div class="tb-tip">💡 Split composite figures into smaller shapes first!</div>`},
+  {s:'math',t:'Volume of Cuboid & Cube',b:`<div class="tb-fml">Cuboid = length × breadth × height</div><div class="tb-fml">Cube = side³</div><p><strong>1 litre = 1000 cm³</strong></p><div class="tb-tip">💡 If container is ¾ full → water = ¾ × total volume.</div>`},
+  {s:'math',t:'Speed, Distance & Time',b:`<div class="tb-fml">Speed = Distance ÷ Time</div><div class="tb-fml">Distance = Speed × Time</div><div class="tb-fml">Time = Distance ÷ Speed</div><div class="tb-fml">Average Speed = Total Distance ÷ Total Time</div><div class="tb-tip">💡 Units must match! km/h or m/min.</div>`},
+  {s:'math',t:'Angles — Key Rules',b:`<ul><li>Straight line = <strong>180°</strong></li><li>Point = <strong>360°</strong></li><li>Vertically opposite = <strong>equal</strong></li><li>Triangle = <strong>180°</strong></li><li>Quadrilateral = <strong>360°</strong></li><li>Equilateral triangle = all <strong>60°</strong></li><li>Isosceles = base angles <strong>equal</strong></li></ul>`},
+  {s:'sci',t:'Photosynthesis vs Respiration',b:`<div class="tb-fml">Photosynthesis: CO₂ + Water → Glucose + O₂ (needs light)</div><div class="tb-fml">Respiration: Glucose + O₂ → CO₂ + Water + Energy</div><table><tr><th></th><th>Photosynthesis</th><th>Respiration</th></tr><tr><td>Done by</td><td>Plants only</td><td>All living things</td></tr><tr><td>When</td><td>In light only</td><td>All the time</td></tr><tr><td>Energy</td><td>Stored</td><td>Released</td></tr></table>`},
+  {s:'sci',t:'Human Body Systems',b:`<h4>Digestive System</h4><p>Mouth → Oesophagus → Stomach → Small intestine → Large intestine</p><p>Food is <strong>digested</strong> then <strong>absorbed</strong> into blood.</p><h4>Respiratory System</h4><p>Nose → Trachea → Lungs → Alveoli</p><p>O₂ absorbed into blood; CO₂ removed.</p><div class="tb-tip">💡 Key words: absorbed, released, transferred, converted.</div>`},
+  {s:'sci',t:'Forces — Types & Effects',b:`<ul><li><strong>Gravity:</strong> pulls objects to Earth</li><li><strong>Friction:</strong> opposes motion between surfaces</li><li><strong>Magnetic:</strong> attracts iron/steel</li><li><strong>Air resistance:</strong> opposes motion through air</li></ul><div class="tb-fml">Weight = Mass × 10 N/kg</div><div class="tb-tip">💡 Forces cause objects to start, stop, speed up, slow down or change direction.</div>`},
+  {s:'sci',t:'Water Cycle',b:`<ul><li><strong>Evaporation:</strong> water → vapour (heated by sun)</li><li><strong>Condensation:</strong> vapour → droplets (cooled)</li><li><strong>Precipitation:</strong> rain/snow falls</li><li><strong>Collection:</strong> water in rivers/lakes/oceans</li></ul><div class="tb-tip">💡 Clouds form when water vapour condenses around dust particles.</div>`},
+  {s:'sci',t:'Energy — Forms & Conversion',b:`<p><strong>Forms:</strong> Light, Heat, Sound, Electrical, Kinetic, Potential, Chemical</p><ul><li>Battery → Electrical → Light + Heat</li><li>Sun → Light → Heat</li><li>Potential → Kinetic (falling object)</li></ul><div class="tb-tip">💡 Energy cannot be created or destroyed — only converted!</div>`},
+  {s:'sci',t:'Electricity & Circuits',b:`<ul><li>Complete circuit needed for current to flow</li><li><strong>Conductors:</strong> copper, iron, steel</li><li><strong>Insulators:</strong> plastic, rubber, wood</li></ul><table><tr><th></th><th>Series</th><th>Parallel</th></tr><tr><td>One fails</td><td>All fail</td><td>Others work</td></tr><tr><td>Brightness</td><td>Dimmer</td><td>Brighter</td></tr></table>`},
+  {s:'chi',t:'常用成语 Idioms Set 1',b:`<table><tr><th>成语</th><th>Meaning</th></tr><tr><td>一石二鸟</td><td>Kill two birds with one stone</td></tr><tr><td>半途而废</td><td>Give up halfway</td></tr><tr><td>马到成功</td><td>Immediate success</td></tr><tr><td>专心致志</td><td>Wholeheartedly focused</td></tr><tr><td>废寝忘食</td><td>Forget to sleep and eat (work hard)</td></tr></table>`},
+  {s:'chi',t:'常用成语 Idioms Set 2',b:`<table><tr><th>成语</th><th>Meaning</th></tr><tr><td>助人为乐</td><td>Happy to help others</td></tr><tr><td>见义勇为</td><td>Bravely do what is right</td></tr><tr><td>患难与共</td><td>Stand together in difficulty</td></tr><tr><td>舍己为人</td><td>Sacrifice for others</td></tr><tr><td>互相帮助</td><td>Help each other</td></tr></table>`},
+  {s:'chi',t:'作文词语 Composition Vocab',b:`<h4>心情 Emotions</h4><p>喜出望外 · 垂头丧气 · 心惊胆战 · 热泪盈眶</p><h4>天气 Weather</h4><p>烈日当空 · 倾盆大雨 · 风和日丽</p><h4>动作 Actions</h4><p>迫不及待 · 手忙脚乱 · 目瞪口呆</p><div class="tb-tip">💡 Use vivid phrases in 作文 to score higher!</div>`},
+  {s:'chi',t:'口试技巧 Oral Tips',b:`<h4>朗读 Reading Aloud</h4><ul><li>Steady pace, clear pronunciation</li><li>Pause at commas (，) and full stops (。)</li></ul><h4>看图说话</h4><ul><li>Describe who, what, where, when, why</li><li>Give your own opinion with reasons</li></ul><div class="tb-tip">💡 Start: 从这幅图，我可以看到...</div>`},
+  {s:'eng',t:'Grammar — Tenses',b:`<table><tr><th>Tense</th><th>Example</th></tr><tr><td>Simple Present</td><td>She <strong>walks</strong> to school.</td></tr><tr><td>Simple Past</td><td>She <strong>walked</strong> to school.</td></tr><tr><td>Present Continuous</td><td>She <strong>is walking</strong>.</td></tr><tr><td>Past Continuous</td><td>She <strong>was walking</strong>.</td></tr><tr><td>Present Perfect</td><td>She <strong>has walked</strong>.</td></tr></table><div class="tb-tip">💡 Read the whole passage first to identify the tense!</div>`},
+  {s:'eng',t:'Synthesis & Transformation',b:`<ul><li><strong>Although:</strong> Although it rained, they played.</li><li><strong>Despite:</strong> Despite the rain, they played.</li><li><strong>So…that:</strong> It was so cold that she wore a coat.</li><li><strong>Too…to:</strong> It was too cold to go out.</li><li><strong>Neither…nor:</strong> Neither Tom nor Mary came.</li><li><strong>Not only…but also:</strong> Not only did he sing but he also danced.</li></ul><div class="tb-tip">💡 Never change the meaning — only the structure!</div>`},
+  {s:'eng',t:'Comprehension OEQ Tips',b:`<ol><li><strong>Read</strong> the question — find keyword</li><li><strong>Locate</strong> relevant paragraph</li><li><strong>Quote</strong> evidence from passage</li><li><strong>Explain</strong> in your own words</li></ol><p><em>Useful phrases:</em> This suggests that... / According to the passage... / The writer shows that...</p><div class="tb-tip">💡 Always use text evidence — not just your own opinion!</div>`},
+  {s:'eng',t:'Composition Sentence Starters',b:`<h4>Story openings</h4><ul><li>It was a [weather] morning when...</li><li>Never in my life had I imagined that...</li><li>The moment I saw it, I knew something was wrong.</li></ul><h4>Feelings</h4><p>My heart sank. · A wave of relief washed over me.</p><div class="tb-tip">💡 Never begin 3 sentences in a row with "I"!</div>`},
+  {s:'eng',t:'Oral — Stimulus Conversation',b:`<ol><li><strong>State</strong> your opinion</li><li><strong>Reason</strong> — 1-2 reasons why</li><li><strong>Example</strong> — from real life</li><li><strong>Conclude</strong> — link back to question</li></ol><p><em>Phrases:</em> In my opinion... / For example... / On the other hand... / In conclusion...</p><div class="tb-tip">💡 Pause and think before answering — speak naturally!</div>`},
 ];
 
 let nFil='all', nQ='';
